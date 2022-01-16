@@ -1,38 +1,160 @@
 #include <iostream>
+#include <cmath>
 
 using namespace std;
-
 #define COUNT 10
-struct Node{
-    int data;
-    Node* left;
-    Node* right;
-    Node* parent;
-    bool color;
-    // 1 -> Red | 0 -> Black
+struct Node {
+	int data;
+	Node* left;
+	Node* right;
+	Node* parent;
+	bool color;
+	//1 -> Red   | 0 -> Black
 };
 
-struct RedBlackTree{
-    Node* Root;
-    Node* insertHelp(Node* root, int key){
-        if(root == NULL)
-            return new Node{key, NULL, NULL, NULL, 1};
-        else if(key > root->data){
-            root->right = insertHelp(root->right, key);
-            root->right->parent = root;
-        }
-        else{
-            root->left = insertHelp(root->left, key);
-            root->left->parent = root;
-        }
-        return root;
-    }
-    void Insert(int key){
-        Root = insertHelp(Root, key);
-    }
-    RedBlackTree(){
-        Root = NULL;
-    }
+Node* rotateRight(Node* root) {
+	Node* x = root->left;
+	// Gán x->right vào left root
+	root->left = x->right;
+	if (x->right != NULL)
+		x->right->parent = root;
+
+	// Gán root vào x.right
+	x->right = root;
+	root->parent = x;
+
+	// Trả về x
+	return x;
+}
+
+Node* rotateLeft(Node* root) {
+	Node* y = root->right;
+	// Gán y->left vào right root
+	root->right = y->left;
+	if (y->left != NULL)
+		y->left->parent = root;
+
+	// Gán root vào y.left
+	y->left = root;
+	root->parent = y;
+
+	// Trả về y;
+	return y;
+}
+
+struct RedBlackTree {
+	Node* Root;
+	bool ll = false;
+	bool rr = false;
+	bool lr = false;
+	bool rl = false;
+	RedBlackTree() {
+		Root = NULL;
+	}
+	Node* insertHelp(Node* root, int key) {
+		// f đúng khi có xung đột RED RED
+		bool f = false;
+
+		if (root == NULL) {
+			return new Node{ key, NULL, NULL, NULL, 1 }; // RED Node
+		}
+		else if (root != NULL && key < root->data) {
+			root->left = insertHelp(root->left, key);
+			root->left->parent = root;
+			if (Root != root) {
+				if (root->color == root->left->color == 1)
+					f = true;
+			}
+		}
+		else {
+			root->right = insertHelp(root->right, key);
+			root->right->parent = root;
+			if (Root != root) {
+				if (root->color == root->right->color == 1)
+					f = true;
+			}
+		}
+
+		// Xử lý 4 TH lệch
+		// Case 1 : Left left - Trái trái
+		if (ll) {
+			root = rotateRight(root);
+			root->color = 0;
+			root->right->color = 1;
+			ll = false;
+		}
+		// Case 2 : Right right - Phải phải
+		else if (rr) {
+			root = rotateLeft(root);
+			root->color = 0;
+			root->left->color = 1;
+			rr = false;
+		}
+		// Case 3 : Left right - Phải trái
+		else if (lr) {
+			root->left = rotateLeft(root->left);
+			root->left->parent = root;
+
+			root = rotateRight(root);
+			root->color = 0;
+			root->left->color = 1;
+			lr = false;
+		}
+		// Case 4 : Right left - Phải trái
+		else if (rl) {
+			root->right = rotateRight(root->right);
+			root->right->parent = root;
+
+			root = rotateLeft(root);
+			root->color = 0;
+			root->right->color = 1;
+			rl = false;
+		}
+
+		// Xử lí xung đột đỏ - RED RED
+		if (f) {
+			if (root->parent->right == root) {
+				if (root->parent->left == NULL || root->parent->left->color == 0) {
+					if (root->left != NULL && root->left->color == 1)
+						rl = true;
+					if (root->right != NULL && root->right->color == 1)
+						rr = true;
+				}
+				else {
+					root->color = root->parent->left->color = 0;
+					if (root != Root)
+						root->parent->color = 1;
+					else
+						root->parent->color = 0;
+				}
+			}
+			else {
+				if (root->parent->right == NULL || root->parent->right->color == 0) {
+					if (root->left != NULL && root->left->color == 1)
+						ll = true;
+					if (root->right != NULL && root->right->color == 1)
+						lr = true;
+				}
+				else {
+					root->color = root->parent->right->color == 0;
+					if (root != Root)
+						root->parent->color = 1;
+					else
+						root->parent->color = 0;
+				}
+			}
+		}
+		return root;
+	}
+
+	void Insert(int key) {
+		if (Root == NULL) {
+			Root = new Node{ key, NULL, NULL, NULL, 0 };
+		}
+		else {
+			Root = insertHelp(Root, key);
+		}
+	}
 };
 
 string getColor(Node* root) {
@@ -62,13 +184,14 @@ void print2D(Node* root) {
 }
 
 
-int main(){
-    RedBlackTree RBTree;
-    RBTree.Insert(10);
-    RBTree.Insert(5);
-    RBTree.Insert(7);
-    RBTree.Insert(12);
-    RBTree.Insert(15);
-    print2D(RBTree.Root);
-
+int main() {
+	RedBlackTree RBTree;
+	RBTree.Insert(30);
+	RBTree.Insert(40);
+	RBTree.Insert(50);
+	RBTree.Insert(60);
+	RBTree.Insert(70);
+	RBTree.Insert(80);
+	print2D(RBTree.Root);
+	return 0;
 }
