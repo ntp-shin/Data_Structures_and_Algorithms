@@ -3,6 +3,7 @@
 
 using namespace std;
 #define COUNT 10
+
 struct Node {
 	int data;
 	Node* left;
@@ -13,33 +14,25 @@ struct Node {
 };
 
 Node* rotateRight(Node* root) {
-	Node* x = root->left;
-	// Gán x->right vào left root
-	root->left = x->right;
-	if (x->right != NULL)
-		x->right->parent = root;
-
-	// Gán root vào x.right
-	x->right = root;
-	root->parent = x;
-
-	// Trả về x
-	return x;
+    Node* x = root->left;
+    Node* y = x->right;
+    x->right = root;
+    root->left = y;
+    root->parent = x;
+    if(y!=NULL)
+        y->parent = root;
+    return x;
 }
 
 Node* rotateLeft(Node* root) {
-	Node* y = root->right;
-	// Gán y->left vào right root
-	root->right = y->left;
-	if (y->left != NULL)
-		y->left->parent = root;
-
-	// Gán root vào y.left
-	y->left = root;
-	root->parent = y;
-
-	// Trả về y;
-	return y;
+        Node* x = root->right;
+        Node* y = x->left;
+        x->left = root;
+        root->right = y;
+        root->parent = x; // parent resetting is also important.
+        if(y!=NULL)
+            y->parent = root;
+        return x;
 }
 
 struct RedBlackTree {
@@ -58,7 +51,7 @@ struct RedBlackTree {
 		if (root == NULL) {
 			return new Node{ key, NULL, NULL, NULL, 1 }; // RED Node
 		}
-		else if (root != NULL && key < root->data) {
+		else if (key < root->data) {
 			root->left = insertHelp(root->left, key);
 			root->left->parent = root;
 			if (Root != root) {
@@ -77,18 +70,18 @@ struct RedBlackTree {
 
 		// Xử lý 4 TH lệch
 		// Case 1 : Left left - Trái trái
-		if (ll) {
+		if (rr) {
 			root = rotateRight(root);
 			root->color = 0;
 			root->right->color = 1;
-			ll = false;
+			rr = false;
 		}
 		// Case 2 : Right right - Phải phải
-		else if (rr) {
+		else if (ll) {
 			root = rotateLeft(root);
 			root->color = 0;
 			root->left->color = 1;
-			rr = false;
+			ll = false;
 		}
 		// Case 3 : Left right - Phải trái
 		else if (lr) {
@@ -97,7 +90,7 @@ struct RedBlackTree {
 
 			root = rotateRight(root);
 			root->color = 0;
-			root->left->color = 1;
+			root->right->color = 1;
 			lr = false;
 		}
 		// Case 4 : Right left - Phải trái
@@ -107,7 +100,7 @@ struct RedBlackTree {
 
 			root = rotateLeft(root);
 			root->color = 0;
-			root->right->color = 1;
+			root->left->color = 1;
 			rl = false;
 		}
 
@@ -118,31 +111,28 @@ struct RedBlackTree {
 					if (root->left != NULL && root->left->color == 1)
 						rl = true;
 					if (root->right != NULL && root->right->color == 1)
-						rr = true;
+						ll = true;
 				}
 				else {
 					root->color = root->parent->left->color = 0;
 					if (root != Root)
 						root->parent->color = 1;
-					else
-						root->parent->color = 0;
 				}
 			}
-			else {
+			else if(root->parent->left == root) {
 				if (root->parent->right == NULL || root->parent->right->color == 0) {
 					if (root->left != NULL && root->left->color == 1)
-						ll = true;
+						rr = true;
 					if (root->right != NULL && root->right->color == 1)
 						lr = true;
 				}
 				else {
-					root->color = root->parent->right->color == 0;
+					root->color = root->parent->right->color = 0;
 					if (root != Root)
 						root->parent->color = 1;
-					else
-						root->parent->color = 0;
 				}
 			}
+			f = false;
 		}
 		return root;
 	}
@@ -153,12 +143,14 @@ struct RedBlackTree {
 		}
 		else {
 			Root = insertHelp(Root, key);
+			if (Root->color == 1)
+				Root->color = 0;
 		}
 	}
 };
 
 string getColor(Node* root) {
-	if (root != NULL && root->color)
+	if (root->color == 1)
 		return "RED";
 	return "BLACK";
 }
@@ -186,12 +178,16 @@ void print2D(Node* root) {
 
 int main() {
 	RedBlackTree RBTree;
-	RBTree.Insert(30);
-	RBTree.Insert(40);
-	RBTree.Insert(50);
-	RBTree.Insert(60);
-	RBTree.Insert(70);
-	RBTree.Insert(80);
+	RBTree.Insert(1);
+	RBTree.Insert(4);
+	RBTree.Insert(6);
+	RBTree.Insert(3);
+	RBTree.Insert(5);
+	RBTree.Insert(7);
+	RBTree.Insert(8);
+	RBTree.Insert(9);
+	RBTree.Insert(2);
+
 	print2D(RBTree.Root);
 	return 0;
 }
