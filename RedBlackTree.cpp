@@ -98,7 +98,7 @@ struct RedBlackTree {
 
 			root = rotateRight(root);
 			root->color = 0;
-			root->left->color = 1;
+			root->right->color = 1;
 			lr = false;
 		}
 		// Case 4 : Right left - Phải trái
@@ -108,7 +108,7 @@ struct RedBlackTree {
 
 			root = rotateLeft(root);
 			root->color = 0;
-			root->right->color = 1;
+			root->left->color = 1;
 			rl = false;
 		}
 
@@ -125,8 +125,6 @@ struct RedBlackTree {
 					root->color = root->parent->left->color = 0;
 					if (root != Root)
 						root->parent->color = 1;
-					else
-						root->parent->color = 0;
 				}
 			}
 			else {
@@ -140,8 +138,6 @@ struct RedBlackTree {
 					root->color = root->parent->right->color = 0;
 					if (root != Root)
 						root->parent->color = 1;
-					else
-						root->parent->color = 0;
 				}
 			}
 			f = false;
@@ -155,8 +151,8 @@ struct RedBlackTree {
 		}
 		else {
 			Root = insertHelp(Root, key);
-			//if (Root->color == 1)
-			//	Root->color = 0;
+			if (Root->color == 1)
+				Root->color = 0;
 		}
 	}
 };
